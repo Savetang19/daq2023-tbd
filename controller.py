@@ -45,14 +45,17 @@ def get_current_weather_data(location):
     table = get_table(location)
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
-            SELECT temperature, humidity, rainfall, condition
-            FROM {table}
-            ORDER BY timestamp DESC
+            SELECT kb.temp, kb.humid, tmd.rain, tmd.cond
+            FROM {table} kb, hpc_tmd tmd
+            WHERE kb.ts = tmd.ts
+            ORDER BY kb.ts DESC
             LIMIT 1;
-        """, [location])
+        """)
         result = cs.fetchone()
+        result = models.WeatherData(*result)
+        result.condition = WEATHER_CONDITIONS[result.condition]
     if result:
-        return models.WeatherData(*result)
+        return result
     else:
         abort(404)
 
@@ -75,20 +78,20 @@ def get_forecast_weather():
 
 
 def get_moisture_data(location):
-    """"Get the most recent moisture data for a given location."""
+    """"Return the most recent soil moisture data for a given location."""
     table = get_table(location)
     with pool.connection() as conn, conn.cursor() as cs:
-        cs.execute("""
-            SELECT moisture, timestamp
-            FROM moisture_data
-            WHERE location = %s
-            ORDER BY timestamp DESC
+        cs.execute(f"""
+            SELECT moisture
+            FROM {table}
+            ORDER BY ts DESC
             LIMIT 1;
-        """, (location,))
+        """)
         result = cs.fetchone()
     if result:
         return models.SoilMoistureData(*result)
-    abort(404, "No moisture data for location {}".format(location))
+    else:
+        abort(404)
         
 
 def get_watering_condition(location):
@@ -96,18 +99,11 @@ def get_watering_condition(location):
     table = get_table(location)
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
-            SELECT
-            CASE
-                WHEN forecast_weather = 'rainy' AND moisture < 50 AND humidity < 50 THEN 1
-                ELSE 0
-            END AS watering_condition,
-            current_timestamp AS timestamp,
-            moisture,
-            humidity
-            FROM {table}
-            ORDER BY timestamp DESC
-            LIMIT 1;
-        """, (location,))
+            SELECT kb.moisture, kb.humid, tmd.cond
+            FROM {table} kb, hpc_tmd tmd
+            WHERE kb.ts = tmd.ts
+            ORDER BY kb.ts DESC
+        """)
         result = cs.fetchone()
     if result:
         return models.WateringCondition(*result)
@@ -122,8 +118,8 @@ def get_recommend_roof_status(location):
         cs.execute(f"""
             SELECT
             CASE
-                WHEN forecast_weather = 'sunny' AND rainfall < 5 AND condition = 'clear' THEN 'open'
-                ELSE 'closed'
+                WHEN forecast_weather = 'rainy' AND rainfall > 5 THEN 'closed'
+                ELSE 'open'
             END AS recommend_roof_status,
             current_timestamp AS timestamp,
             rainfall,
@@ -131,7 +127,7 @@ def get_recommend_roof_status(location):
             FROM {table}
             ORDER BY timestamp DESC
             LIMIT 1;
-        """, (location,))
+        """)
         result = cs.fetchone()
     if result:
         return models.RoofCondition(*result)
@@ -155,7 +151,7 @@ def get_recommend_sunshade_status(location):
             FROM {table}
             ORDER BY timestamp DESC
             LIMIT 1;
-        """, (location,))
+        """)
         result = cs.fetchone()
     if result:
         return models.SunShadeCondition(*result)
