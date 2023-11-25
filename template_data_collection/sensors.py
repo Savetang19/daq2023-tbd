@@ -99,19 +99,6 @@ async def send_data():
         mqtt.publish("daq2023/group6/sensors", json.dumps(lt))
         await asyncio.sleep(1)
 
-
-# while True:
-#     moisture_value = moisture_sensor.read()
-#     print("Moisture value:", moisture_value)
-#     # mapping the ADC range (0-4095) to a percentage (0-100)
-#     moisture_percentage = (moisture_value / 4095) * 100
-#     print(f"Moisture percentage: {moisture_percentage: .2f}%")
-#     dht_sensor.measure()
-#     temperature = dht_sensor.temperature()
-#     humidity = dht_sensor.humidity()
-#     print(f"Temperature: {temperature}°C, Humidity: {humidity}%")
-#     print("---------------------------------------------------- ")
-#     time.sleep(5)
 async def check_msg_task():
     while True:
         mqtt.check_msg()

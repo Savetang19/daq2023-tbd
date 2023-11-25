@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*~
+tmp
+.DS_Store
+.coverage
+htmlcov/*
+*.swp
+config.py
+env/
+stub/
+controller_sol.py
+openapi/rain-api-with-links-sol.yaml
+app-with-links-sol.py
+ve

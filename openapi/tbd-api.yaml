@@ -1,0 +1,209 @@
+openapi: 3.0.0
+info:
+  title: TBD API
+  description:
+    Our API offers comprehensive environment control for users managing various aspects of our farm surroundings.
+    For plant care, it provides insights on when to water based on real-time weather conditions, soil moisture levels, and humidity.
+    Additionally, it enables the automated open or close sunshades by considering ambient light levels (LDR) and temperature.
+    For roof control, the API factors in weather patterns and rainfall, allowing users to open or close their roofs based on these environment conditions.
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:8080/tbd-api/v1
+paths:
+  /weather/current/{location}:
+    parameters:
+      - name: location
+        in: path
+        required: true
+        description: location of weather data
+        schema:
+          type: string
+    get:
+      summary: return current weather data including temperature, humidity, rainfall, condition
+      operationId: controller.get_current_weather_data
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherData'
+  /weather/forecast:
+    get:
+      summary: return weather forecast data including temperature, humidity, rainfall, condition
+      operationId: controller.get_forecast_weather
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherData'
+  /soil-moisture/{location}:
+    parameters:
+      - name: location
+        in: path
+        required: true
+        description: location of soil moisture data
+        schema:
+          type: string
+    get:
+      summary: return soil moisture data
+      operationId: controller.get_moisture_data
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoilMoistureData'
+  /watering-condition/{location}:
+    parameters:
+      - name: location
+        in: path
+        required: true
+        description: location of watering condition
+        schema:
+          type: string
+    get:
+      summary: return boolean value that calculate from 3 hour forecast weather condition, soil-moisture, and humidity
+      operationId: controller.get_watering_condition
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WateringCondition'
+  /greenhouse/roof:
+    get:
+      summary: API returns String value that is calculated from forecast weather condition and rainfall sensor.
+      operationId: controller.get_recommend_roof_status
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoofCondition'
+  /greenhouse/sun-shade/{location}:
+    parameters:
+      - name: location
+        in: path
+        required: true
+        description: location of sun shade
+        schema:
+          type: string
+    get:
+      summary: returns String value for sun shade  that is calculated from forecast
+      operationId: controller.get_recommend_sunshade_status
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SunShadeCondition'
+
+components:
+  schemas:
+    WeatherData:
+      type: object
+      properties:
+        temperature:
+          type: number
+          format: float
+          description: temperature value
+        humidity:
+          type: number
+          format: float
+          description: humidity value
+        rainfall:
+          type: number
+          format: float
+          description: rainfall value
+        condition:
+          type: string
+          description: weather condition
+      example:
+        temperature: 30.0
+        humidity: 50.0
+        rainfall: 0.0
+        condition: sunny
+    SoilMoistureData:
+      type: object
+      properties:
+        moisture:
+          type: number
+          format: float
+          description: moisture value in percentage
+      example:
+        moisture: 50.0
+    WateringCondition:
+      type: object
+      properties:
+        watering_needed:
+          type: boolean
+          description: watering needed or not
+        timestamp:
+          type: string
+          description: timestamp when watering needed
+        condition:
+          type: string
+          description: weather condition
+        moisture_threshold:
+          type: number
+          format: float
+          description: moisture threshold value in percentage
+        humidity:
+          type: number
+          format: float
+          description: humidity value
+      example:
+        watering_needed: true,
+        timestamp: "2023-11-22 11:00:00"
+        condition: "sunny"
+        moisture_threshold: 40.0
+        humidity: 50.0
+    RoofCondition:
+      type: object
+      properties:
+        roof_status:
+          type: string
+          description: roof status
+        timestamp:
+          type: string
+          description: timestamp when roof status is calculated
+        condition:
+          type: string
+          description: weather condition
+        rainfall:
+          type: number
+          format: float
+          description: rainfall value
+      example:
+        roof_status: "open"
+        timestamp: "2023-11-22 11:00:00"
+        condition: "sunny"
+        rainfall: 0.0
+    SunShadeCondition:
+      type: object
+      properties:
+        recommend_sun_shade_status:
+          type: string
+          description: recommend sun shade status
+        timestamp:
+          type: string
+          description: timestamp when sun shade status is calculated
+        condition:
+          type: string
+          description: forecast weather condition
+        rainfall:
+          type: number
+          format: float
+          description: rainfall value
+      example:
+        recommend_sun_shade_status: "closed"
+        timestamp: "2023-11-22 11:00:00"
+        condition: "Partly Cloudy"
+        rainfall: 5.0
