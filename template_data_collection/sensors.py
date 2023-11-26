@@ -8,33 +8,38 @@ from math import log10
 from umqtt.robust import MQTTClient
 from config import (
     WIFI_SSID, WIFI_PASS,
-    MQTT_BROKER, MQTT_USER, MQTT_PASS
+    MQTT_BROKER, MQTT_USER, MQTT_PASS,url
 )
 import dht
 import time
 
-led_red = Pin(2, Pin.OUT)
-led_red.value(1)  # turn the red led off
-led_iot = Pin(12, Pin.OUT)
-led_iot.value(1)   # turn the green led off
-#connecting
 wlan = network.WLAN(network.STA_IF)
-wlan.active(True)
-print("Connecting to WiFi")
-wlan.connect(WIFI_SSID, WIFI_PASS)
-while not wlan.isconnected():
-    time.sleep(0.5)
-print("Wifi connected")
-led_red.value(0)
-
 mqtt = MQTTClient(client_id="",
-                  server=MQTT_BROKER,
-                  user=MQTT_USER,
-                  password=MQTT_PASS)
-print("Connecting to MQTT broker")
-mqtt.connect()
-print("MQTT broker connected")
-led_iot.value(0)
+                      server=MQTT_BROKER,
+                      user=MQTT_USER,
+                      password=MQTT_PASS)
+led_wifi = Pin(2, Pin.OUT)
+led_iot = Pin(12, Pin.OUT)
+
+def connect():
+    #connecting  
+    wlan.active(True)
+    print("Connecting to WiFi")
+    wlan.connect(WIFI_SSID, WIFI_PASS)
+    while not wlan.isconnected():
+        time.sleep(0.5)
+    print("Wifi connected")
+    led_wifi.value(0) 
+    print("Connecting to MQTT broker")
+    mqtt.connect()
+    print("MQTT broker connected")
+    led_iot.value(0)
+    
+def disconnect():
+    mqtt.disconnect()
+    led_iot.value(1)   # turn the green led off
+    wlan.disconnect()
+    led_wifi.value(1)  # turn the red led off
 
 moisture_sensor = ADC(Pin(32)) # I1
 moisture_sensor.atten(ADC.ATTN_11DB)
@@ -81,6 +86,8 @@ def moistmeter():
 
 async def send_data():
     while True:
+        connect()
+        
         await asyncio.sleep(0.01)
         dht_sensor.measure()
         temperature = dht_sensor.temperature()
@@ -88,16 +95,16 @@ async def send_data():
         light = Lux_meter()
         moist = moistmeter()
         await asyncio.sleep(0.1)
-        lt= {"lat":321,
-             "lon":321,
+        lt= {"lat":13,
+             "lon":100,
              "light":light,
              "temp":temperature,
              "humid":humidity,
              "moisture":moist
             }
-        print(lt)
-        mqtt.publish("daq2023/group6/sensors", json.dumps(lt))
-        await asyncio.sleep(1)
+        mqtt.publish(url, json.dumps(lt))
+        disconnect()
+        await asyncio.sleep(3600)
 
 async def check_msg_task():
     while True:
