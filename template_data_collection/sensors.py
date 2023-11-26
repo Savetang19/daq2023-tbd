@@ -109,7 +109,7 @@ async def send_data():
 async def check_msg_task():
     while True:
         mqtt.check_msg()
-        await asyncio.sleep_ms(0)
+        await asyncio.sleep(0.01)
 
 asyncio.create_task(check_msg_task())
 asyncio.create_task(send_data())
