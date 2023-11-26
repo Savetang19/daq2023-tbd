@@ -104,7 +104,7 @@ async def send_data():
             }
         mqtt.publish(url, json.dumps(lt))
         disconnect()
-        await asyncio.sleep(3600)
+        await asyncio.sleep(600)
 
 async def check_msg_task():
     while True:
