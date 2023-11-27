@@ -30,6 +30,7 @@ WEATHER_CONDITIONS = {
     12: "Very hot"
 }
 
+
 def get_table(location):
     """Return the table name for a given location."""
     if location == "indoor":
@@ -98,12 +99,39 @@ def get_watering_condition(location):
     """Return boolean value that calculate from 3 hour forecast weather condition, soil-moisture, and humidity."""
     table = get_table(location)
     with pool.connection() as conn, conn.cursor() as cs:
-        cs.execute(f"""
-            SELECT kb.moisture, kb.humid, tmd.cond
-            FROM {table} kb, hpc_tmd tmd
-            WHERE kb.ts = tmd.ts
+        cs.execute("""
+            SELECT
+                CASE
+                    WHEN tmd.cond IN (5, 6, 7, 8) THEN false 
+                    WHEN tmd.cond IN (1, 2, 3, 4) AND kb.moisture < 40 AND kb.humid < 60 THEN true
+                    ELSE false
+                END AS watering_needed,
+                CURRENT_TIMESTAMP AS timestamp,
+                CASE
+                    WHEN tmd.cond IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12) THEN
+                        CASE tmd.cond
+                            WHEN 1 THEN 'Clear'
+                            WHEN 2 THEN 'Partly cloudy'
+                            WHEN 3 THEN 'Cloudy'
+                            WHEN 4 THEN 'Overcast'
+                            WHEN 5 THEN 'Light rain'
+                            WHEN 6 THEN 'Moderate rain'
+                            WHEN 7 THEN 'Heavy rain'
+                            WHEN 8 THEN 'Thunderstorm'
+                            WHEN 9 THEN 'Very cold'
+                            WHEN 10 THEN 'Cold'
+                            WHEN 11 THEN 'Cool'
+                            WHEN 12 THEN 'Very hot'
+                        END
+                    ELSE NULL
+                END AS weather_condition,
+                40 AS moisture_threshold,
+                kb.humid AS humidity
+            FROM {table} kb
+            JOIN hpc_tmd tmd ON kb.ts = tmd.ts
             ORDER BY kb.ts DESC
-        """)
+            LIMIT 1
+                """)
         result = cs.fetchone()
     if result:
         return models.WateringCondition(*result)
