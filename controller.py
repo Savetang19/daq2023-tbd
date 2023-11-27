@@ -48,8 +48,8 @@ def get_current_weather_data(location):
         cs.execute(f"""
             SELECT kb.temp, kb.humid, tmd.rain, tmd.cond
             FROM {table} kb, hpc_tmd tmd
-            WHERE kb.ts = tmd.ts
-            ORDER BY kb.ts DESC
+            WHERE DATE_FORMAT(kb.ts, '%Y-%m-%d %H') = DATE_FORMAT(tmd.ts, '%Y-%m-%d %H')
+            ORDER BY DATE_FORMAT(kb.ts, '%Y-%m-%d %H') DESC
             LIMIT 1;
         """)
         result = cs.fetchone()
@@ -99,44 +99,35 @@ def get_watering_condition(location):
     """Return boolean value that calculate from 3 hour forecast weather condition, soil-moisture, and humidity."""
     table = get_table(location)
     with pool.connection() as conn, conn.cursor() as cs:
-        cs.execute("""
-            SELECT
-                CASE
-                    WHEN tmd.cond IN (5, 6, 7, 8) THEN false 
-                    WHEN tmd.cond IN (1, 2, 3, 4) AND kb.moisture < 40 AND kb.humid < 60 THEN true
-                    ELSE false
-                END AS watering_needed,
-                CURRENT_TIMESTAMP AS timestamp,
-                CASE
-                    WHEN tmd.cond IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12) THEN
-                        CASE tmd.cond
-                            WHEN 1 THEN 'Clear'
-                            WHEN 2 THEN 'Partly cloudy'
-                            WHEN 3 THEN 'Cloudy'
-                            WHEN 4 THEN 'Overcast'
-                            WHEN 5 THEN 'Light rain'
-                            WHEN 6 THEN 'Moderate rain'
-                            WHEN 7 THEN 'Heavy rain'
-                            WHEN 8 THEN 'Thunderstorm'
-                            WHEN 9 THEN 'Very cold'
-                            WHEN 10 THEN 'Cold'
-                            WHEN 11 THEN 'Cool'
-                            WHEN 12 THEN 'Very hot'
-                        END
-                    ELSE NULL
-                END AS weather_condition,
-                40 AS moisture_threshold,
-                kb.humid AS humidity
-            FROM {table} kb
-            JOIN hpc_tmd tmd ON kb.ts = tmd.ts
-            ORDER BY kb.ts DESC
-            LIMIT 1
-                """)
+        cs.execute(f"""
+            SELECT kb.ts, kb.humid, kb.moisture,tmd.cond
+            FROM {table} kb, hpc_tmd tmd
+            WHERE DATE_FORMAT(kb.ts, '%Y-%m-%d %H:00:00') = DATE_FORMAT(tmd.ts, '%Y-%m-%d %H:00:00')
+            ORDER BY DATE_FORMAT(kb.ts, '%Y-%m-%d %H:00:00') DESC
+            LIMIT 1;
+        """)
         result = cs.fetchone()
-    if result:
-        return models.WateringCondition(*result)
-    else:
-        abort(404)
+        if result == None:
+            abort(404)
+        ts = result[0]
+        humidity = result[1]
+        moisture = result[2]
+        condition = result[3]
+        model = models.WateringCondition(*result)
+        if condition in [5, 6, 7, 8]:
+            print("FALSE")
+            model.watering_needed = False
+        if condition in [1, 2, 3, 4] and moisture < 40 and humidity < 60:
+            print("TRUE")
+            model.watering_needed = True
+        else:
+            print("FALSE")
+            model.watering_needed = False
+        model.timestamp = ts
+        model.humidity = humidity
+        model.moisture_threshold = moisture
+        model.condition = WEATHER_CONDITIONS[condition]
+    return model
 
 
 def get_recommend_roof_status(location):
