@@ -114,14 +114,9 @@ def get_watering_condition(location):
         moisture = result[2]
         condition = result[3]
         model = models.WateringCondition(*result)
-        if condition in [5, 6, 7, 8]:
-            print("FALSE")
-            model.watering_needed = False
-        if condition in [1, 2, 3, 4] and moisture < 40 and humidity < 60:
-            print("TRUE")
+        if condition in [1, 2, 3, 4, 12] and moisture < 40 and humidity < 50:
             model.watering_needed = True
-        else:
-            print("FALSE")
+        else: # condition in [5, 6, 7, 8, 9, 10, 11]
             model.watering_needed = False
         model.timestamp = ts
         model.humidity = humidity
@@ -130,9 +125,8 @@ def get_watering_condition(location):
     return model
 
 
-def get_recommend_roof_status(location):
+def get_recommend_roof_status():
     """"Returns String value that is calculated from forecast weather condition and rainfall sensor."""
-    table = get_table(location)
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
             SELECT
@@ -143,7 +137,7 @@ def get_recommend_roof_status(location):
             current_timestamp AS timestamp,
             rainfall,
             condition
-            FROM {table}
+            FROM kidbright_indoor
             ORDER BY timestamp DESC
             LIMIT 1;
         """)
