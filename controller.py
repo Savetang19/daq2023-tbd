@@ -109,6 +109,8 @@ def get_watering_condition(location):
         result = cs.fetchone()
         if result == None:
             abort(404)
+        # this for readable code you can change if want
+        # result = tuple(ts, humidity, moisture, condition)
         ts = result[0]
         humidity = result[1]
         moisture = result[2]
