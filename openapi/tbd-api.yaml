@@ -202,8 +202,13 @@ components:
           type: number
           format: float
           description: rainfall value
+        light:
+          type: number
+          format: float
+          description: light in lux value
       example:
         recommend_sun_shade_status: "closed"
         timestamp: "2023-11-22 11:00:00"
         condition: "Partly Cloudy"
         rainfall: 5.0
+        light: 100.0
