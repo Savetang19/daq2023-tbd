@@ -129,7 +129,7 @@ def get_recommend_roof_status():
     """"Returns String value that is calculated from forecast weather condition and rainfall sensor."""
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
-            SELECT kb.ts, tmd.cond, tmd.rain, tmd.moisture
+            SELECT kb.ts, kb.moisture,tmd.cond, tmd.rain
             FROM kidbright_outdoor kb, hpc_tmd tmd
             WHERE DATE_FORMAT(kb.ts, '%Y-%m-%d %H:00:00') = DATE_FORMAT(tmd.ts, '%Y-%m-%d %H:00:00')
             ORDER BY DATE_FORMAT(kb.ts, '%Y-%m-%d %H:00:00') DESC
@@ -139,9 +139,9 @@ def get_recommend_roof_status():
         if result == None:
             abort(404)
         ts = result[0]
-        condition = result[1]
-        rainfall = result[2]
-        moisture = result[3]
+        moisture = result[1]
+        condition = result[2]
+        rainfall = result[3]
         model = models.RoofCondition(*result)
         if (condition in [6, 7, 8] and rainfall > 4 and moisture > 60) or condition == 12:
             model.roof_status = 'closed'
