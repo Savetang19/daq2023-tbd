@@ -2,10 +2,7 @@ openapi: 3.0.0
 info:
   title: TBD API
   description:
-    Our API offers comprehensive environment control for users managing various aspects of our farm surroundings.
-    For plant care, it provides insights on when to water based on real-time weather conditions, soil moisture levels, and humidity.
-    Additionally, it enables the automated open or close sunshades by considering ambient light levels (LDR) and temperature.
-    For roof control, the API factors in weather patterns and rainfall, allowing users to open or close their roofs based on these environment conditions.
+    Our API offers comprehensive environment control for users managing various aspects of our farm surroundings. For plant care, it provides insights on when to water based on real-time weather conditions, soil moisture levels, humidity, and light intensity. Additionally, it will recommend to open or close sunshades by considering ambient light intensity (lux). For roof control, the API factors in weather patterns and rainfall, allowing users to open or close their roofs based on these environment conditions.
   version: 1.0.0
 servers:
   - url: http://127.0.0.1:8080/tbd-api/v1
