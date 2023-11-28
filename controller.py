@@ -31,11 +31,11 @@ WEATHER_CONDITIONS = {
 }
 
 
-def get_table(location):
+def get_table(location: str):
     """Return the table name for a given location."""
-    if location == "indoor":
+    if location.lower() == "indoor":
         return "kidbright_indoor"
-    elif location == "outdoor":
+    elif location.lower() == "outdoor":
         return "kidbright_outdoor"
     else:
         abort(400, "Invalid location {}".format(location))
