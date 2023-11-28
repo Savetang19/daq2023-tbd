@@ -168,7 +168,7 @@ components:
     RoofCondition:
       type: object
       properties:
-        roof_status:
+        recommend_roof_status:
           type: string
           description: roof status
         timestamp:
@@ -186,7 +186,7 @@ components:
           format: float
           description: moisture threshold value in percentage
       example:
-        roof_status: "open"
+        recommend_roof_status: "open"
         timestamp: "2023-11-22 11:00:00"
         condition: "sunny"
         rainfall: 0.0
@@ -205,6 +205,6 @@ components:
           format: float
           description: light in lux value
       example:
-        recommend_sun_shade_status: "closed"
+        recommend_sun_shade_status: "close"
         timestamp: "2023-11-22 11:00:00"
         light: 100.0

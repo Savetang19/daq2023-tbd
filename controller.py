@@ -144,9 +144,9 @@ def get_recommend_roof_status():
         rainfall = result[3]
         model = models.RoofCondition(*result)
         if (condition in [6, 7, 8] and rainfall > 4 and moisture > 60) or condition == 12:
-            model.roof_status = 'closed'
+            model.recommend_roof_status = 'close'
         else: # condition in [1, 2, 3, 4, 5, 9, 10, 11]
-            model.roof_status = 'opened'
+            model.recommend_roof_status = 'open'
         model.condition = WEATHER_CONDITIONS[condition]
         model.timestamp = ts
         model.rainfall = rainfall
@@ -172,15 +172,15 @@ def get_recommend_sunshade_status(location):
         if location == "indoor":
             # checking if light > 1000
             if 1000 > light >= 0:
-                model.recommend_sun_shade_status = 'opened'
+                model.recommend_sun_shade_status = 'open'
             else:
-                model.recommend_sun_shade_status = 'closed'
+                model.recommend_sun_shade_status = 'close'
         if location == "outdoor":
             # checking if light > 10000
             if light > 10000:
-                model.recommend_sun_shade_status = 'closed'
+                model.recommend_sun_shade_status = 'close'
             else:
-                model.recommend_sun_shade_status = 'opened'
+                model.recommend_sun_shade_status = 'open'
         model.timestamp = ts
         model.light = light
     return model
