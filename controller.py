@@ -129,34 +129,8 @@ def get_recommend_roof_status():
     """"Returns String value that is calculated from forecast weather condition and rainfall sensor."""
     with pool.connection() as conn, conn.cursor() as cs:
         cs.execute(f"""
-            SELECT ts, cond, rain
-            FROM hpc_tmd
-            ORDER BY ts DESC
-            LIMIT 1;
-        """)
-        result = cs.fetchone()
-        if result == None:
-            abort(404)
-        ts = result[0]
-        condition = result[1]
-        rainfall = result[2]
-        model = models.RoofCondition(*result)
-        if condition in [6, 7, 8, 9, 10, 11, 12] and rainfall > 4:
-            model.roof_status = 'closed'
-        else: # condition in [1, 2, 3, 4, 5]
-            model.roof_status = 'opened'
-        model.condition = WEATHER_CONDITIONS[condition]
-        model.timestamp = ts
-        model.rainfall = rainfall
-    return model
-
-def get_recommend_sunshade_status(location):
-    """"Returns String value for sun shade  that is calculated from forecast weather condition and rainfall sensor."""
-    table = get_table(location)
-    with pool.connection() as conn, conn.cursor() as cs:
-        cs.execute(f"""
-            SELECT kb.ts, kb.light, tmd.cond, tmd.rain
-            FROM {table} kb, hpc_tmd tmd
+            SELECT kb.ts, tmd.cond, tmd.rain, tmd.moisture
+            FROM kidbright_outdoor kb, hpc_tmd tmd
             WHERE DATE_FORMAT(kb.ts, '%Y-%m-%d %H:00:00') = DATE_FORMAT(tmd.ts, '%Y-%m-%d %H:00:00')
             ORDER BY DATE_FORMAT(kb.ts, '%Y-%m-%d %H:00:00') DESC
             LIMIT 1;
@@ -165,9 +139,35 @@ def get_recommend_sunshade_status(location):
         if result == None:
             abort(404)
         ts = result[0]
+        condition = result[1]
+        rainfall = result[2]
+        moisture = result[3]
+        model = models.RoofCondition(*result)
+        if (condition in [6, 7, 8] and rainfall > 4 and moisture > 60) or condition == 12:
+            model.roof_status = 'closed'
+        else: # condition in [1, 2, 3, 4, 5, 9, 10, 11]
+            model.roof_status = 'opened'
+        model.condition = WEATHER_CONDITIONS[condition]
+        model.timestamp = ts
+        model.rainfall = rainfall
+        model.moisture_threshold = moisture
+    return model
+
+def get_recommend_sunshade_status(location):
+    """"Returns String value for sun shade  that is calculated from forecast weather condition and rainfall sensor."""
+    table = get_table(location)
+    with pool.connection() as conn, conn.cursor() as cs:
+        cs.execute(f"""
+            SELECT kb.ts, kb.light
+            FROM {table} kb
+            ORDER BY kb.ts DESC
+            LIMIT 1;
+        """)
+        result = cs.fetchone()
+        if result == None:
+            abort(404)
+        ts = result[0]
         light = result[1]
-        condition = result[2]
-        rainfall = result[3]
         model = models.SunShadeCondition(*result)
         if location == "indoor":
             # checking if light > 1000
@@ -176,13 +176,11 @@ def get_recommend_sunshade_status(location):
             else:
                 model.recommend_sun_shade_status = 'closed'
         if location == "outdoor":
-            # checking if light > 10000 or (heavy rain, thunderstorm can do damage to plant and rainfall > 4)
-            if light > 10000 or (condition in [7, 8] and rainfall > 4):
+            # checking if light > 10000
+            if light > 10000:
                 model.recommend_sun_shade_status = 'closed'
             else:
                 model.recommend_sun_shade_status = 'opened'
-        model.condition = WEATHER_CONDITIONS[condition]
         model.timestamp = ts
-        model.rainfall = rainfall
         model.light = light
     return model

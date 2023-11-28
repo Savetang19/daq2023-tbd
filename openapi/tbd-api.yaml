@@ -181,11 +181,16 @@ components:
           type: number
           format: float
           description: rainfall value
+        moisture_threshold:
+          type: number
+          format: float
+          description: moisture threshold value in percentage
       example:
         roof_status: "open"
         timestamp: "2023-11-22 11:00:00"
         condition: "sunny"
         rainfall: 0.0
+        moisture_threshold: 40.0
     SunShadeCondition:
       type: object
       properties:
@@ -195,13 +200,6 @@ components:
         timestamp:
           type: string
           description: timestamp when sun shade status is calculated
-        condition:
-          type: string
-          description: forecast weather condition
-        rainfall:
-          type: number
-          format: float
-          description: rainfall value
         light:
           type: number
           format: float
@@ -209,6 +207,4 @@ components:
       example:
         recommend_sun_shade_status: "closed"
         timestamp: "2023-11-22 11:00:00"
-        condition: "Partly Cloudy"
-        rainfall: 5.0
         light: 100.0
