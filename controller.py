@@ -114,14 +114,21 @@ def get_watering_condition(location):
         moisture = result[2]
         condition = result[3]
         model = models.WateringCondition(*result)
-        if condition in [1, 2, 3, 4, 12] and moisture < 40 and humidity < 50:
-            model.watering_needed = True
-        else: # condition in [5, 6, 7, 8, 9, 10, 11]
-            model.watering_needed = False
+        model.condition = WEATHER_CONDITIONS[condition]
+        if location == "indoor":
+            if moisture < 40 and humidity < 50:
+                model.watering_needed = True
+            else:
+                model.watering_needed = False
+            return {"humidity": humidity, "moisture": moisture, "timestamp": ts,"watering_needed": model.watering_needed}
+        if location == "outdoor":
+            if condition in [1, 2, 3, 4, 12] and moisture < 40 and humidity < 50:
+                model.watering_needed = True
+            else: # condition in [5, 6, 7, 8, 9, 10, 11]
+                model.watering_needed = False
         model.timestamp = ts
         model.humidity = humidity
         model.moisture_threshold = moisture
-        model.condition = WEATHER_CONDITIONS[condition]
     return model
 
 
