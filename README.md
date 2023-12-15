@@ -11,9 +11,6 @@ Project from 01219335 - Data Acquisition and Integration
 ## Project Overview & Features
 Our API offers comprehensive environment control for users managing various aspects of our farm surroundings. For plant care, it provides insights on when to water based on real-time weather conditions, soil moisture levels, humidity, and light intensity. Additionally, it will recommend to open or close sunshades by considering ambient light intensity (lux). For roof control, the API factors in weather patterns and rainfall, allowing users to open or close their roofs based on these environment conditions.
 
-### Required Library and tools
-All requirements are mentioned in requirements.txt
-
 ## Installation & Run
 
 ### How to install
