@@ -1,6 +1,7 @@
 # TBD-My-Little-Farm
 Project from 01219335 - Data Acquisition and Integration
-## Team members (Department of Software Engineering, Kasetsart University)
+## Team members 
+### Department of Software and Knowledge Engineering, Kasetsart University
 - Thanida Chaiwongnon 6410545444
 - Napasakorn Boonkerd 6410545487
 - Maroj Thangthong 6410546238
