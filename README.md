@@ -16,6 +16,9 @@ first, you need to create file name `config.py` to configuration
 `config.py` file template looks like [config.py.example](config.py.example) you can modify value and copy it into `config.py`
 **Note that you may get your config.py by contacted our team member via email.**
 
+then, Generate server stubs for python-flask from openapi/tbd-api.yaml with [Swagger Editor](https://editor.swagger.io) or
+OpenAPI Generator and Put them inside stub folder
+
 next, you have to create environment by typing this command
 
 ```sh
